@@ -17,6 +17,7 @@ const cors = require("cors");
 require("dotenv").config();
 const mongoClient = require("mongodb").MongoClient;
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
@@ -32,11 +33,37 @@ const connect = async (db, uri) => {
   return _db;
 };
 
+const generateToken = (id, email) => {
+  return jwt.sign(
+    {
+      user_id: id,
+      email: email,
+    },
+    process.env.SECRET_KEY,
+    {
+      expiresIn: "1h",
+    }
+  );
+};
+
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) {
+    return res.sendStatus(403);
+  }
+  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
 const main = async () => {
   let db = await connect(dbName, mongoUri);
 
   // Show all posts
-  app.get("/posts", async (req, res) => {
+  app.get("/posts", verifyToken, async (req, res) => {
     try {
       let results = await db
         .collection("posts")
@@ -141,16 +168,7 @@ const main = async () => {
     }
   });
 
-  // Create a post
-  /*
-  - app.post, with try/catch
-  - Store data fields in variables
-  - Validation
-  - Create object for the new post
-  - Add new post
-  - Respond with results
-  */
-
+  // Create post
   app.post("/add", async (req, res) => {
     try {
       const { body, permalink, author, title, tags } = req.body;
@@ -217,6 +235,42 @@ const main = async () => {
       console.error("Error", error);
       res.status(500).json({ "Error adding user": "Internal server error" });
     }
+  });
+
+  // Log in
+  /*
+  - create app.post
+  - store user details in variables
+  - validation
+  - check if user exists
+  -- if yes, check whether password match with records
+  - if yes, generate token
+  - respond with token 
+  */
+  app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ Error: "Please provide required credentials" });
+    }
+
+    let user = await db.collection("users").findOne({ email: email });
+
+    if (!user) {
+      return res.status(400).json({ Error: "Invalid email or password" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(400).json({ Error: "Invalid email or password" });
+    }
+
+    const token = generateToken(user._id, user.email);
+
+    res.json({ status: "Log in successful", token: token });
   });
 
   // reread slides on jwt and sessions and cookies
