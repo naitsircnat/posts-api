@@ -86,16 +86,6 @@ const main = async () => {
   });
 
   // Search across posts
-  /*
-  - Create app.find with try/catch; use req.query for various search parameters
-  - Create variables to store search values
-  - Validation 
-  - Create query object
-  - Add variables to query object
-  - Perform search
-  - respond with result 
-  */
-
   app.get("/search", async (req, res) => {
     try {
       const { body, author, permalink, title, tags } = req.query;
@@ -139,10 +129,54 @@ const main = async () => {
         .limit(20)
         .toArray();
 
+      if (result.length == 0) {
+        return res.json({ Status: "Your search didn't yield any results" });
+      }
+
       res.json({ result });
     } catch (error) {
       console.error("Error retrieving search results", error);
       res.status(500).json({ Error: "Internal server error." });
+    }
+  });
+
+  // Create a post
+  /*
+  - app.post, with try/catch
+  - Store data fields in variables
+  - Validation
+  - Create object for the new post
+  - Add new post
+  - Respond with results
+  */
+
+  app.post("/add", async (req, res) => {
+    try {
+      const { body, permalink, author, title, tags } = req.body;
+
+      if (!body || !permalink || !author || !title || !tags) {
+        return res
+          .status(400)
+          .json({ Error: "Please provide all required fields" });
+      }
+
+      const newPost = {
+        body,
+        permalink,
+        author,
+        title,
+        tags,
+        date: new Date(),
+      };
+
+      let result = await db.collection("posts").insertOne(newPost);
+
+      res
+        .status(201)
+        .json({ Message: "Post added succesfully.", _id: result.insertedId });
+    } catch (error) {
+      console.error("Error", e);
+      res.status(500).json({ "Error adding post": "Internal server error" });
     }
   });
 
