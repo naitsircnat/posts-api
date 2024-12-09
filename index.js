@@ -23,6 +23,7 @@ app.use(cors());
 
 const mongoUri = process.env.MONGO_URI;
 const dbName = "sample_training";
+const { ObjectId } = require("mongodb");
 
 const connect = async (db, uri) => {
   let client = await mongoClient.connect(uri);
@@ -41,6 +42,7 @@ const main = async () => {
         .find()
         .project({
           _id: 0,
+          body: 0,
           permalink: 0,
           comments: 0,
         })
@@ -53,6 +55,41 @@ const main = async () => {
       res
         .status(500)
         .json({ "Error retrieving posts": "Internal server error" });
+    }
+  });
+
+  // Find one post
+  /*
+  - create app.get; use try/catch; use post id in params
+  - create variable for post id in params
+  - validation
+  - retrieve post
+  - respond with results 
+  */
+
+  app.get("/posts/:postId", async (req, res) => {
+    try {
+      const id = req.params.postId;
+
+      if (!id) {
+        return res.status(404).json({ Status: "Post not found" });
+      }
+
+      let result = await db.collection("posts").findOne(
+        {
+          _id: new ObjectId(id),
+        },
+        {
+          projection: { permalink: 0, comments: 0 },
+        }
+      );
+
+      res.json({ result });
+    } catch (error) {
+      console.error("Error:", error);
+      res
+        .status(500)
+        .json({ "Error retrieving post": "Internal server error" });
     }
   });
 };
