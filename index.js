@@ -209,9 +209,20 @@ const main = async () => {
   - respond 
   */
 
+  // Delete post
+  /*
+  - create app.delete with try/catch
+  - store postId as variable
+  - validation
+  - 
+  /**
+   * 
+   */
+
   // Add user
   app.post("/users", async (req, res) => {
     try {
+      console.log(req.body);
       const { email, password } = req.body;
 
       if (!email || !password) {
@@ -247,6 +258,7 @@ const main = async () => {
   - if yes, generate token
   - respond with token 
   */
+
   app.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
