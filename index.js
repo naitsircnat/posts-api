@@ -16,6 +16,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const mongoClient = require("mongodb").MongoClient;
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(express.json());
@@ -177,6 +178,44 @@ const main = async () => {
     } catch (error) {
       console.error("Error", e);
       res.status(500).json({ "Error adding post": "Internal server error" });
+    }
+  });
+
+  // Update post
+  /*
+  - create app.put with try/catch;
+  - store new data in variables
+  - validation
+  - create object for updatedPost
+  - Do the update in database
+  - respond 
+  */
+
+  // Add user
+  app.post("/users", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res
+          .status(400)
+          .json({ Error: "Please provide required fields" });
+      }
+
+      const newUser = {
+        email,
+        password: await bcrypt.hash(req.body.password, 12),
+      };
+
+      let result = await db.collection("users").insertOne(newUser);
+
+      res.json({
+        Message: "User successfully added",
+        result: result,
+      });
+    } catch (error) {
+      console.error("Error", error);
+      res.status(500).json({ "Error adding user": "Internal server error" });
     }
   });
 
