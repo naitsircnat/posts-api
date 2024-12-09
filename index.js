@@ -58,15 +58,7 @@ const main = async () => {
     }
   });
 
-  // Find one post
-  /*
-  - create app.get; use try/catch; use post id in params
-  - create variable for post id in params
-  - validation
-  - retrieve post
-  - respond with results 
-  */
-
+  // Find post
   app.get("/posts/:postId", async (req, res) => {
     try {
       const id = req.params.postId;
@@ -80,7 +72,7 @@ const main = async () => {
           _id: new ObjectId(id),
         },
         {
-          projection: { permalink: 0, comments: 0 },
+          projection: { permalink: 0 },
         }
       );
 
@@ -92,6 +84,69 @@ const main = async () => {
         .json({ "Error retrieving post": "Internal server error" });
     }
   });
+
+  // Search across posts
+  /*
+  - Create app.find with try/catch; use req.query for various search parameters
+  - Create variables to store search values
+  - Validation 
+  - Create query object
+  - Add variables to query object
+  - Perform search
+  - respond with result 
+  */
+
+  app.get("/search", async (req, res) => {
+    try {
+      const { body, author, permalink, title, tags } = req.query;
+
+      if (!body && !author && !permalink && !title && !tags) {
+        return res
+          .status(400)
+          .json({ Error: "Please search for at least one parameter." });
+      }
+
+      const query = {};
+
+      if (body) {
+        query["body"] = { $regex: body, $options: "i" };
+      }
+
+      if (author) {
+        query["author"] = { $regex: author, $options: "i" };
+      }
+
+      if (permalink) {
+        query["permalink"] = { $regex: permalink, $options: "i" };
+      }
+
+      if (title) {
+        query["title"] = { $regex: title, $options: "i" };
+      }
+
+      if (tags) {
+        query["tags"] = {
+          $all: tags.split(",").map((i) => new RegExp(i, "i")),
+        };
+      }
+
+      console.log("Query", query);
+
+      let result = await db
+        .collection("posts")
+        .find(query)
+        .project({ _id: 0, body: 0, comments: 0 })
+        .limit(20)
+        .toArray();
+
+      res.json({ result });
+    } catch (error) {
+      console.error("Error retrieving search results", error);
+      res.status(500).json({ Error: "Internal server error." });
+    }
+  });
+
+  // reread slides on jwt and sessions and cookies
 };
 
 main();
