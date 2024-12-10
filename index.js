@@ -20,6 +20,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 
@@ -109,7 +110,7 @@ const main = async () => {
       console.error("Error:", error);
       res
         .status(500)
-        .json({ "Error retrieving post": "Internal server error" });
+        .json({ "error retrieving post": "Internal server error" });
     }
   });
 
@@ -121,7 +122,7 @@ const main = async () => {
       if (!body && !author && !permalink && !title && !tags) {
         return res
           .status(400)
-          .json({ Error: "Please search for at least one parameter." });
+          .json({ error: "Please search for at least one parameter." });
       }
 
       const query = {};
@@ -158,13 +159,13 @@ const main = async () => {
         .toArray();
 
       if (result.length == 0) {
-        return res.json({ Status: "Your search didn't yield any results" });
+        return res.json({ error: "Your search didn't yield any results" });
       }
 
       res.json({ result });
     } catch (error) {
-      console.error("Error retrieving search results", error);
-      res.status(500).json({ Error: "Internal server error." });
+      console.error("error retrieving search results", error);
+      res.status(500).json({ error: "Internal server error." });
     }
   });
 
@@ -176,7 +177,7 @@ const main = async () => {
       if (!body || !permalink || !author || !title || !tags) {
         return res
           .status(400)
-          .json({ Error: "Please provide all required fields" });
+          .json({ error: "Please provide all required fields" });
       }
 
       const newPost = {
@@ -192,24 +193,14 @@ const main = async () => {
 
       res
         .status(201)
-        .json({ Message: "Post added succesfully.", _id: result.insertedId });
+        .json({ message: "Post added succesfully.", _id: result.insertedId });
     } catch (error) {
-      console.error("Error", e);
-      res.status(500).json({ "Error adding post": "Internal server error" });
+      console.error("error", e);
+      res.status(500).json({ "error adding post": "Internal server error" });
     }
   });
 
   // Update post
-  /*
-  - create app.put with try/catch;
-  - store new data in variables
-  - validation
-  - create object for updatedPost
-  - Do the update in database
-  - check for match 
-  - respond 
-  */
-
   app.put("/posts/:postId", async (req, res) => {
     try {
       const id = req.params.postId;
@@ -255,13 +246,54 @@ const main = async () => {
         .deleteOne({ _id: new ObjectId(id) });
 
       if (result.deletedCount === 0) {
-        res.status(404).json({ error: "Post not found" });
+        return res.status(404).json({ error: "Post not found" });
       }
 
       res.json({ status: "Post deleted successfully" });
     } catch (error) {
       console.error("Error:", error);
       res.status(500).json({ "error deleting post": "Internal server error" });
+    }
+  });
+
+  // COMMENTS: Create comment
+  /*
+  - Create relevant URI-posts/postId/; try/catch
+  - store postId and review data in variables
+  - validation
+  - create object for new review
+  - add review
+  - respond 
+  */
+
+  app.post("/posts/:postId/comments", async (req, res) => {
+    try {
+      const id = req.params.postId;
+      const { body, email, author } = req.body;
+
+      const newComment = { body, email, author };
+
+      if (!body || !email || !author) {
+        return res
+          .status(400)
+          .json({ error: "Please provide all required fields" });
+      }
+
+      let result = await db
+        .collection("posts")
+        .updateOne(
+          { _id: new ObjectId(id) },
+          { $push: { comments: newComment } }
+        );
+
+      if (result.matchedCount === 0) {
+        return res.status(400).json({ error: "Post not found" });
+      }
+
+      res.status(201).json({ status: "Comment added successfully" });
+    } catch (error) {
+      console.error("error:", error);
+      res.status(500).json({ "error adding comment": "Internal server error" });
     }
   });
 
@@ -320,8 +352,6 @@ const main = async () => {
 
     res.json({ status: "Log in successful", token: token });
   });
-
-  // reread slides on jwt and sessions and cookies
 };
 
 main();

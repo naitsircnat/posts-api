@@ -1,7 +1,7 @@
 {
   "body": "Test body",
   "permalink": "asdasd",
-  "author": "Paul",
+  "author": "wendy",
   "title": "Test title",
   "tags": ["tag1", "tag2", "tag3"]
 }
