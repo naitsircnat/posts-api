@@ -1,17 +1,3 @@
-/*
-- get hold of cors, dotenv, express and mongodb
-- create "app"
-- create app.listen at the end
-- Connect to database; incl. storing credentials in env file
-- Create routes
-- Create jwt authentication
--- user route
--- log in route
--- get hold of jwt packages
--- token creation
--- token verification
-*/
-
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -256,22 +242,13 @@ const main = async () => {
     }
   });
 
-  // COMMENTS: Create comment
-  /*
-  - Create relevant URI-posts/postId/; try/catch
-  - store postId and review data in variables
-  - validation
-  - create object for new review
-  - add review
-  - respond 
-  */
-
+  // Create comment
   app.post("/posts/:postId/comments", async (req, res) => {
     try {
       const id = req.params.postId;
       const { body, email, author } = req.body;
 
-      const newComment = { body, email, author };
+      const newComment = { comment_id: new ObjectId(), body, email, author };
 
       if (!body || !email || !author) {
         return res
@@ -295,6 +272,39 @@ const main = async () => {
       console.error("error:", error);
       res.status(500).json({ "error adding comment": "Internal server error" });
     }
+  });
+
+  // Update comment
+  app.put("/posts/:postId/comments/:commentId", async (req, res) => {
+    const { postId, commentId } = req.params;
+
+    const { body, email, author } = req.body;
+
+    if (!body || !email || !author) {
+      return res
+        .status(400)
+        .json({ error: "Please provide all required fields" });
+    }
+
+    const updatedComment = {
+      comment_id: new ObjectId(commentId),
+      body,
+      email,
+      author,
+    };
+
+    let result = await db.collection("posts").updateOne(
+      {
+        _id: new ObjectId(postId),
+        "comments.comment_id": new ObjectId(commentId),
+      },
+      { $set: { "comments.$": updatedComment } }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+    res.json({ status: "Comment successfully updated" });
   });
 
   // Add user
