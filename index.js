@@ -206,8 +206,44 @@ const main = async () => {
   - validation
   - create object for updatedPost
   - Do the update in database
+  - check for match 
   - respond 
   */
+
+  app.put("/posts/:postId", async (req, res) => {
+    try {
+      const id = req.params.postId;
+      const { body, permalink, author, title, tags } = req.body;
+
+      if (!body || !permalink || !author || !title || !tags) {
+        return res
+          .status(400)
+          .json({ Error: "Please provide all required fields" });
+      }
+
+      const updatedPost = {
+        body,
+        permalink,
+        author,
+        title,
+        tags,
+        date: new Date(),
+      };
+
+      let result = await db
+        .collection("posts")
+        .updateOne({ _id: new ObjectId(id) }, { $set: updatedPost });
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ error: "Post not found" });
+      }
+
+      res.json({ status: "Update successful" });
+    } catch (error) {
+      console.error("Error updating post:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
 
   // Delete post
   /*
@@ -249,16 +285,6 @@ const main = async () => {
   });
 
   // Log in
-  /*
-  - create app.post
-  - store user details in variables
-  - validation
-  - check if user exists
-  -- if yes, check whether password match with records
-  - if yes, generate token
-  - respond with token 
-  */
-
   app.post("/login", async (req, res) => {
     const { email, password } = req.body;
 

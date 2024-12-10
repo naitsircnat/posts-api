@@ -1,0 +1,16 @@
+{
+  "body": "Test body",
+  "permalink": "asdasd",
+  "author": "Paul",
+  "title": "Test title",
+  "tags": ["tag1", "tag2", "tag3"]
+}
+
+{
+  "body": "Test body",
+  "permalink": "asdasd",
+  "author": "roger",
+  "title": "Test title",
+  "tags": ["tag1", "tag2", "tag3"]
+}
+
