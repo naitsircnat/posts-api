@@ -276,35 +276,72 @@ const main = async () => {
 
   // Update comment
   app.put("/posts/:postId/comments/:commentId", async (req, res) => {
-    const { postId, commentId } = req.params;
+    try {
+      const { postId, commentId } = req.params;
 
-    const { body, email, author } = req.body;
+      const { body, email, author } = req.body;
 
-    if (!body || !email || !author) {
-      return res
-        .status(400)
-        .json({ error: "Please provide all required fields" });
+      if (!body || !email || !author) {
+        return res
+          .status(400)
+          .json({ error: "Please provide all required fields" });
+      }
+
+      const updatedComment = {
+        comment_id: new ObjectId(commentId),
+        body,
+        email,
+        author,
+      };
+
+      let result = await db.collection("posts").updateOne(
+        {
+          _id: new ObjectId(postId),
+          "comments.comment_id": new ObjectId(commentId),
+        },
+        { $set: { "comments.$": updatedComment } }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ error: "post or comment not found" });
+      }
+
+      res.json({ status: "Comment successfully updated" });
+    } catch (error) {
+      console.error("error:", error);
+      res
+        .status(500)
+        .json({ "error updating comment": "Internal server error" });
     }
+  });
 
-    const updatedComment = {
-      comment_id: new ObjectId(commentId),
-      body,
-      email,
-      author,
-    };
+  // Delete comment
+  app.delete("/posts/:postId/comments/:commentId", async (req, res) => {
+    try {
+      const { postId, commentId } = req.params;
 
-    let result = await db.collection("posts").updateOne(
-      {
-        _id: new ObjectId(postId),
-        "comments.comment_id": new ObjectId(commentId),
-      },
-      { $set: { "comments.$": updatedComment } }
-    );
+      let result = await db.collection("posts").updateOne(
+        {
+          _id: new ObjectId(postId),
+        },
+        { $pull: { comments: { comment_id: new ObjectId(commentId) } } }
+      );
 
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ error: "Comment not found" });
+      if (result.matchedCount == 0) {
+        res.status(400).json({ error: "Post not found" });
+      }
+
+      if (result.modifiedCount == 0) {
+        res.status(400).json({ error: "Comment not found" });
+      }
+
+      res.json({ status: "Comment successfully deleted" });
+    } catch (error) {
+      console.error("error:", error);
+      res
+        .status(500)
+        .json({ "error deleting comment": "Internal server error" });
     }
-    res.json({ status: "Comment successfully updated" });
   });
 
   // Add user
