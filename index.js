@@ -218,7 +218,7 @@ const main = async () => {
       if (!body || !permalink || !author || !title || !tags) {
         return res
           .status(400)
-          .json({ Error: "Please provide all required fields" });
+          .json({ error: "Please provide all required fields" });
       }
 
       const updatedPost = {
@@ -246,14 +246,24 @@ const main = async () => {
   });
 
   // Delete post
-  /*
-  - create app.delete with try/catch
-  - store postId as variable
-  - validation
-  - 
-  /**
-   * 
-   */
+  app.delete("/posts/:postId", async (req, res) => {
+    try {
+      const id = req.params.postId;
+
+      let result = await db
+        .collection("posts")
+        .deleteOne({ _id: new ObjectId(id) });
+
+      if (result.deletedCount === 0) {
+        res.status(404).json({ error: "Post not found" });
+      }
+
+      res.json({ status: "Post deleted successfully" });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ "error deleting post": "Internal server error" });
+    }
+  });
 
   // Add user
   app.post("/users", async (req, res) => {
