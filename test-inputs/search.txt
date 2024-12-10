@@ -1,7 +1,11 @@
 SEARCH
 
+body: united states
 https://3000-naitsircnat-postsapi-2wwop8pxnzo.ws-us117.gitpod.io/search?body=united%20states
 
+body: united states
+title: us constitution
 https://3000-naitsircnat-postsapi-2wwop8pxnzo.ws-us117.gitpod.io/search?body=united%20states&title=us%20constitution
 
+tags: america, temperature, cold
 https://3000-naitsircnat-postsapi-2wwop8pxnzo.ws-us117.gitpod.io/search?tags=america,temperature,cold
