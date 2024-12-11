@@ -2,5 +2,3 @@
   "email": "test@testmail.com",
   "password": "test"
 }
-
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjc1NmE2ZTU2M2UzNGRkMTRhODJiMzAwIiwiZW1haWwiOiJ0ZXN0QHRlc3RtYWlsLmNvbSIsImlhdCI6MTczMzg0NTkxMiwiZXhwIjoxNzMzODQ5NTEyfQ.y-ImOuhDFCkmqOWpCBGWgBYEJne9BOEYXOzOWMOBIV4

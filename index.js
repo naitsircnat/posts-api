@@ -50,7 +50,7 @@ const main = async () => {
   let db = await connect(dbName, mongoUri);
 
   // Show all posts
-  app.get("/posts", verifyToken, async (req, res) => {
+  app.get("/posts", async (req, res) => {
     try {
       let results = await db
         .collection("posts")
@@ -101,7 +101,7 @@ const main = async () => {
   });
 
   // Search across posts
-  app.get("/search", async (req, res) => {
+  app.get("/posts", async (req, res) => {
     try {
       const { body, author, permalink, title, tags } = req.query;
 
@@ -156,7 +156,7 @@ const main = async () => {
   });
 
   // Create post
-  app.post("/add", async (req, res) => {
+  app.post("/posts", async (req, res) => {
     try {
       const { body, permalink, author, title, tags } = req.body;
 
